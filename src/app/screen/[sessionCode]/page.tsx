@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useSessionConnection } from "@/lib/webrtc/useSessionConnection";
 import { EmulatorPlayer } from "@/components/emulator/EmulatorPlayer";
 import { GamepadButton } from "@/components/gamepad/VirtualGamepad";
@@ -14,7 +14,9 @@ const BUTTON_KEY_MAP: Record<GamepadButton, string> = {
 
 export default function ScreenPage({ params }: { params: { sessionCode: string } }) {
   const [activePlayers, setActivePlayers] = useState<string[]>([]);
-  const { connectionState } = useSessionConnection(params.sessionCode, "host", useCallback((data: any) => {
+  
+  // connectionState is unused since it's just host viewing the connection locally, we can omit destructuring it.
+  useSessionConnection(params.sessionCode, "host", useCallback((data: Record<string, unknown>) => {
     // Process incoming Remote Gamepad Data
     if (data.button && data.state) {
       const key = BUTTON_KEY_MAP[data.button as GamepadButton];
@@ -30,8 +32,8 @@ export default function ScreenPage({ params }: { params: { sessionCode: string }
       document.dispatchEvent(event);
 
       // Track active players
-      if (data.playerId && !activePlayers.includes(data.playerId)) {
-        setActivePlayers(prev => [...prev, data.playerId]);
+      if (data.playerId && typeof data.playerId === "string" && !activePlayers.includes(data.playerId)) {
+        setActivePlayers(prev => [...prev, data.playerId as string]);
       }
     }
   }, [activePlayers]));
@@ -40,9 +42,8 @@ export default function ScreenPage({ params }: { params: { sessionCode: string }
   return (
     <div className="w-full h-full relative">
       <EmulatorPlayer 
-        gameSlug="remote-session"
         system="snes" // Defaulting to SNES for now, should be DB driven
-        romUrl="https://demo.test/rom.zip"
+        romUrl="/roms/test.z64"
       />
 
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-4 pointer-events-none">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { VirtualGamepad, GamepadButton } from "@/components/gamepad/VirtualGamepad";
 import { useSessionConnection } from "@/lib/webrtc/useSessionConnection";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -9,7 +9,6 @@ import { Wifi, WifiOff } from "lucide-react";
 export default function ControllerPage({ params }: { params: { sessionCode: string } }) {
   const { user } = useAuth();
   const { connectionState, sendData } = useSessionConnection(params.sessionCode, "client", () => {});
-  const [latency, setLatency] = useState(0); // Mock latency
 
   const handleButtonChange = useCallback((btn: GamepadButton, pressed: boolean) => {
     sendData({

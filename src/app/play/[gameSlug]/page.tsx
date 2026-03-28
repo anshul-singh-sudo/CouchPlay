@@ -1,4 +1,5 @@
 import { EmulatorPlayer } from "@/components/emulator/EmulatorPlayer";
+import { ErrorBoundary } from "@/components/providers/error-boundary";
 
 // Mock DB fetch based on the dummy GAMEs from Home
 const GAMES: Record<string, { system: string; romUrl: string }> = {
@@ -22,11 +23,12 @@ export default function PlayScreen({ params }: { params: { gameSlug: string } })
 
   return (
     <div className="w-full h-full">
-      <EmulatorPlayer 
-        gameSlug={params.gameSlug}
-        system={game.system}
-        romUrl={game.romUrl}
-      />
+      <ErrorBoundary>
+        <EmulatorPlayer 
+          system={game.system}
+          romUrl={game.romUrl || `/roms/${params.gameSlug}.z64`}
+        />
+      </ErrorBoundary>
     </div>
   );
 }

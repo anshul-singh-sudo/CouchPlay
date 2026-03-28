@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 export type ConnectionRole = "host" | "client";
 export type ConnectionState = "disconnected" | "connecting" | "connected" | "failed";
 
-export function useSessionConnection(sessionCode: string, role: ConnectionRole, onData: (data: any) => void) {
+export function useSessionConnection(sessionCode: string, role: ConnectionRole, onData: (data: Record<string, unknown>) => void) {
   const [connectionState, setConnectionState] = useState<ConnectionState>("disconnected");
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const dataChannel = useRef<RTCDataChannel | null>(null);
@@ -89,7 +89,7 @@ export function useSessionConnection(sessionCode: string, role: ConnectionRole, 
     };
   }, [sessionCode, role, supabase, initWebRTC]);
 
-  const sendData = useCallback((data: any) => {
+  const sendData = useCallback((data: Record<string, unknown>) => {
     if (dataChannel.current?.readyState === "open") {
       dataChannel.current.send(JSON.stringify(data));
       return true;

@@ -9,10 +9,9 @@ import { useGamepadToKeyboard } from "@/hooks/useGamepadToKeyboard";
 interface EmulatorPlayerProps {
   system: string;
   romUrl: string;
-  gameSlug: string;
 }
 
-export function EmulatorPlayer({ system, romUrl, gameSlug }: EmulatorPlayerProps) {
+export function EmulatorPlayer({ system, romUrl }: EmulatorPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
   const [showGamepad, setShowGamepad] = useState(true);
@@ -22,6 +21,7 @@ export function EmulatorPlayer({ system, romUrl, gameSlug }: EmulatorPlayerProps
   useEffect(() => {
     if (!containerRef.current) return;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const w = window as any;
     w.EJS_player = "#emulator-target";
     w.EJS_core = system.toLowerCase();
@@ -45,7 +45,9 @@ export function EmulatorPlayer({ system, romUrl, gameSlug }: EmulatorPlayerProps
         document.body.removeChild(script);
         const container = document.getElementById("emulator-target");
         if (container) container.innerHTML = "";
-      } catch (e) {}
+      } catch {
+        // Ignored
+      }
     };
   }, [system, romUrl]);
 
