@@ -15,6 +15,8 @@ const BUTTON_KEY_MAP: Record<GamepadButton, string> = {
   Y: "a",
   L: "q",
   R: "w",
+  L2: "1",
+  R2: "2",
   START: "Enter",
   SELECT: "Shift",
 };

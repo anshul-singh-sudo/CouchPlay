@@ -1,22 +1,35 @@
 {
-  "name": "CoachPlay Cloud Console",
+  "name": "CoachPlay",
   "short_name": "CoachPlay",
-  "description": "True cloud couch gaming in your browser.",
+  "description": "Browser-first cloud couch gaming. No installs. No downloads.",
   "start_url": "/",
   "display": "fullscreen",
   "orientation": "landscape",
-  "background_color": "#000000",
   "theme_color": "#000000",
+  "background_color": "#000000",
+  "categories": ["games", "entertainment"],
   "icons": [
     {
-      "src": "/icon-192x192.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/icon-512x512.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "CoachPlay Home Screen"
+    }
+  ],
+  "prefer_related_applications": false
 }

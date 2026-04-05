@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CoachPlay Emulator Shell</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+    #game { width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <div id="game"></div>
+
+  <script>
+    // Parse query params from the iframe src URL
+    const params = new URLSearchParams(window.location.search);
+    const system = params.get('system') || 'snes';
+    const rom = params.get('rom') || '';
+    const muted = params.get('muted') === 'true';
+
+    // Configure EmulatorJS via globals BEFORE loading the script
+    window.EJS_player = '#game';
+    window.EJS_core = system.toLowerCase();
+    window.EJS_gameUrl = rom;
+    window.EJS_pathtodata = 'https://cdn.jsdelivr.net/gh/emulatorjs/emulatorjs@latest/data/';
+    window.EJS_color = '#e11d48';
+    window.EJS_HideControls = true;
+    window.EJS_volume = muted ? 0 : 1;
+    window.EJS_startOnLoaded = true;
+    window.EJS_Buttons = {
+      playPause: false,
+      restart: false,
+      mute: false,
+      settings: false,
+      fullscreen: false,
+      saveState: true,
+      loadState: true,
+      screenRecord: false,
+      gamepad: false,
+      cheat: false,
+      volume: false,
+      saveSavFiles: true,
+    };
+
+    // Notify the parent frame when EJS is ready
+    window.EJS_onGameStart = function() {
+      window.parent.postMessage({ type: 'EJS_READY' }, '*');
+    };
+
+    // Listen for input messages from the parent window
+    // This is the direct injection path that bypasses the UI event queue
+    window.addEventListener('message', function(event) {
+      if (event.data?.type !== 'EJS_INPUT') return;
+      var d = event.data;
+      var keyCode = d.keyCode || (d.key && d.key.length === 1 ? d.key.toUpperCase().charCodeAt(0) : 0);
+
+      var kbEvent = new KeyboardEvent(d.eventName, {
+        key: d.key,
+        code: d.key,
+        keyCode: keyCode,
+        which: keyCode,
+        bubbles: true,
+        cancelable: true,
+      });
+      document.dispatchEvent(kbEvent);
+    });
+
+    // Update mute state on re-parameterization
+    window.addEventListener('message', function(event) {
+      if (event.data?.type === 'EJS_SET_MUTE') {
+        if (window.EJS_emulator && window.EJS_emulator.setVolume) {
+          window.EJS_emulator.setVolume(event.data.muted ? 0 : 1);
+        }
+      }
+    });
+
+    // Load EmulatorJS
+    var script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/gh/emulatorjs/emulatorjs@latest/data/loader.js';
+    script.async = true;
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>

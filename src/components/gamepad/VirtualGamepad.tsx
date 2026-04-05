@@ -1,115 +1,197 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 
-export type GamepadButton = "UP" | "DOWN" | "LEFT" | "RIGHT" | "A" | "B" | "X" | "Y" | "L" | "R" | "START" | "SELECT";
+export type GamepadButton =
+  | "UP" | "DOWN" | "LEFT" | "RIGHT"
+  | "A" | "B" | "X" | "Y"
+  | "L" | "R" | "L2" | "R2"
+  | "START" | "SELECT";
 
 interface VirtualGamepadProps {
   onButtonChange: (button: GamepadButton, pressed: boolean) => void;
+  playerIndex?: 1 | 2 | 3 | 4;
+  /** Variant: 'overlay' (transparent, over emulator) or 'standalone' (opaque, full controller page) */
+  variant?: "overlay" | "standalone";
 }
 
-export function VirtualGamepad({ onButtonChange }: VirtualGamepadProps) {
-  
-  const handlePointerDown = useCallback((e: React.PointerEvent, btn: GamepadButton) => {
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    onButtonChange(btn, true);
-  }, [onButtonChange]);
+export function VirtualGamepad({
+  onButtonChange,
+  playerIndex = 1,
+  variant = "overlay",
+}: VirtualGamepadProps) {
+  // Track active pointers to support multi-touch (4+ simultaneous touches)
+  const activePointers = useRef<Map<number, GamepadButton>>(new Map());
 
-  const handlePointerUp = useCallback((e: React.PointerEvent, btn: GamepadButton) => {
-    (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-    onButtonChange(btn, false);
-  }, [onButtonChange]);
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent, btn: GamepadButton) => {
+      e.preventDefault();
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+      activePointers.current.set(e.pointerId, btn);
+      onButtonChange(btn, true);
+    },
+    [onButtonChange]
+  );
 
-  const ActionButton = ({ btn, label, color = "bg-white/20" }: { btn: GamepadButton; label: string; color?: string }) => (
+  const handlePointerUp = useCallback(
+    (e: React.PointerEvent, btn: GamepadButton) => {
+      e.preventDefault();
+      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      activePointers.current.delete(e.pointerId);
+      onButtonChange(btn, false);
+    },
+    [onButtonChange]
+  );
+
+  const handlePointerCancel = useCallback(
+    (e: React.PointerEvent, btn: GamepadButton) => {
+      activePointers.current.delete(e.pointerId);
+      onButtonChange(btn, false);
+    },
+    [onButtonChange]
+  );
+
+  const playerColors: Record<number, string> = {
+    1: "rose",
+    2: "blue",
+    3: "green",
+    4: "yellow",
+  };
+  const color = playerColors[playerIndex] || "rose";
+
+  const baseAlpha = variant === "standalone" ? "bg-white/15" : "bg-white/10";
+
+  const Button = ({
+    btn,
+    label,
+    className = "",
+    btnColor = "",
+  }: {
+    btn: GamepadButton;
+    label: string;
+    className?: string;
+    btnColor?: string;
+  }) => (
     <motion.div
-      whileTap={{ scale: 0.85, backgroundColor: "rgba(255,255,255,0.4)" }}
+      whileTap={{ scale: 0.82 }}
       onPointerDown={(e) => handlePointerDown(e, btn)}
       onPointerUp={(e) => handlePointerUp(e, btn)}
-      onPointerCancel={(e) => handlePointerUp(e, btn)}
-      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-white/80 font-bold select-none touch-none ${color} backdrop-blur-md shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-white/10`}
+      onPointerCancel={(e) => handlePointerCancel(e, btn)}
+      style={{ touchAction: "none", userSelect: "none" }}
+      className={`
+        flex items-center justify-center rounded-full font-black select-none
+        text-white/80 transition-colors duration-75
+        backdrop-blur-md shadow-lg border border-white/10
+        active:border-white/30
+        ${btnColor || baseAlpha}
+        ${className}
+      `}
     >
       {label}
     </motion.div>
   );
 
   return (
-    <div className="absolute inset-0 z-50 pointer-events-none flex justify-between items-end pb-8 px-8 sm:pb-12 sm:px-16" style={{ touchAction: "none" }}>
-      
-      {/* LEFT SIDE: D-PAD and L Trigger */}
-      <div className="flex flex-col justify-end pointer-events-auto gap-8">
-        <motion.div
-          whileTap={{ scale: 0.9 }}
-          onPointerDown={(e) => handlePointerDown(e, "L")}
-          onPointerUp={(e) => handlePointerUp(e, "L")}
-          onPointerCancel={(e) => handlePointerUp(e, "L")}
-          className="w-24 h-10 bg-white/20 backdrop-blur-md rounded-t-full rounded-b-lg flex items-center justify-center border border-white/10 mb-4 select-none touch-none"
-        >
-          <span className="font-black text-white/50">L</span>
-        </motion.div>
+    <div
+      className={`absolute inset-0 z-50 pointer-events-none select-none ${
+        variant === "standalone" ? "bg-black/40" : ""
+      }`}
+      style={{ touchAction: "none" }}
+    >
+      {/* Player badge */}
+      <div className="absolute top-3 left-1/2 -translate-x-1/2 pointer-events-none">
+        <div className={`px-3 py-1 rounded-full text-xs font-black tracking-widest uppercase bg-${color}-500/20 text-${color}-400 border border-${color}-500/30`}>
+          P{playerIndex}
+        </div>
+      </div>
 
-        {/* Cross D-Pad */}
-        <div className="relative w-32 h-32 select-none touch-none grid grid-cols-3 grid-rows-3 gap-1">
-          <div /> 
-          <ActionButton btn="UP" label="▲" />
+      {/* LEFT SIDE — D-Pad + L Triggers */}
+      <div className="absolute left-6 bottom-8 sm:left-10 sm:bottom-12 pointer-events-auto flex flex-col items-center gap-3">
+        {/* L + L2 triggers */}
+        <div className="flex gap-2 mb-1">
+          <Button btn="L" label="L" className="w-16 h-9 rounded-xl text-sm" />
+          <Button btn="L2" label="L2" className="w-16 h-9 rounded-xl text-sm" />
+        </div>
+
+        {/* D-Pad Cross */}
+        <div
+          className="relative grid grid-cols-3 grid-rows-3 gap-0.5"
+          style={{ width: 120, height: 120 }}
+        >
           <div />
-          <ActionButton btn="LEFT" label="◀" />
-          <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white/10 rounded-full" />
-          <ActionButton btn="RIGHT" label="▶" />
+          <Button btn="UP" label="▲" className="w-full h-full rounded-none rounded-t-lg" />
           <div />
-         <ActionButton btn="DOWN" label="▼" />
+          <Button btn="LEFT" label="◀" className="w-full h-full rounded-none rounded-l-lg" />
+          <div className={`${baseAlpha} rounded-sm flex items-center justify-center`}>
+            <div className="w-3 h-3 rounded-full bg-white/20" />
+          </div>
+          <Button btn="RIGHT" label="▶" className="w-full h-full rounded-none rounded-r-lg" />
+          <div />
+          <Button btn="DOWN" label="▼" className="w-full h-full rounded-none rounded-b-lg" />
           <div />
         </div>
       </div>
 
-      {/* CENTER START/SELECT */}
-      <div className="flex gap-4 mb-4 pointer-events-auto">
-        <motion.div
-          whileTap={{ scale: 0.9 }}
-          onPointerDown={(e) => handlePointerDown(e, "SELECT")}
-          onPointerUp={(e) => handlePointerUp(e, "SELECT")}
-          onPointerCancel={(e) => handlePointerUp(e, "SELECT")}
-          className="w-16 h-6 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/10 select-none touch-none"
-        >
-          <span className="text-[10px] font-bold text-white/50 tracking-widest">SELECT</span>
-        </motion.div>
-        
-        <motion.div
-          whileTap={{ scale: 0.9 }}
-          onPointerDown={(e) => handlePointerDown(e, "START")}
-          onPointerUp={(e) => handlePointerUp(e, "START")}
-          onPointerCancel={(e) => handlePointerUp(e, "START")}
-          className="w-16 h-6 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/10 select-none touch-none"
-        >
-          <span className="text-[10px] font-bold text-white/50 tracking-widest">START</span>
-        </motion.div>
+      {/* CENTER — Start / Select */}
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 pointer-events-auto flex gap-3">
+        <Button
+          btn="SELECT"
+          label="SELECT"
+          className="w-20 h-7 rounded-full text-[10px] tracking-widest"
+        />
+        <Button
+          btn="START"
+          label="START"
+          className="w-20 h-7 rounded-full text-[10px] tracking-widest"
+        />
       </div>
 
-      {/* RIGHT SIDE: ABXY and R Trigger */}
-      <div className="flex flex-col justify-end items-end pointer-events-auto gap-8">
-        <motion.div
-          whileTap={{ scale: 0.9 }}
-          onPointerDown={(e) => handlePointerDown(e, "R")}
-          onPointerUp={(e) => handlePointerUp(e, "R")}
-          onPointerCancel={(e) => handlePointerUp(e, "R")}
-          className="w-24 h-10 bg-white/20 backdrop-blur-md rounded-t-full rounded-b-lg flex items-center justify-center border border-white/10 mb-4 select-none touch-none"
-        >
-          <span className="font-black text-white/50">R</span>
-        </motion.div>
+      {/* RIGHT SIDE — ABXY + R Triggers */}
+      <div className="absolute right-6 bottom-8 sm:right-10 sm:bottom-12 pointer-events-auto flex flex-col items-center gap-3">
+        {/* R + R2 triggers */}
+        <div className="flex gap-2 mb-1">
+          <Button btn="R" label="R" className="w-16 h-9 rounded-xl text-sm" />
+          <Button btn="R2" label="R2" className="w-16 h-9 rounded-xl text-sm" />
+        </div>
 
-        {/* Diamond ABXY Map */}
-        <div className="relative w-32 h-32 select-none touch-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-4">
-            <ActionButton btn="X" label="X" color="bg-blue-500/30" />
+        {/* Diamond ABXY */}
+        <div className="relative" style={{ width: 120, height: 120 }}>
+          {/* X — top */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2">
+            <Button
+              btn="X"
+              label="X"
+              btnColor="bg-blue-500/30 hover:bg-blue-500/50"
+              className="w-10 h-10 sm:w-12 sm:h-12 text-blue-300 font-black text-lg"
+            />
           </div>
-          <div className="absolute top-1/2 right-0 -translate-y-1/2 -mr-4">
-            <ActionButton btn="A" label="A" color="bg-red-500/30" />
+          {/* A — right */}
+          <div className="absolute right-0 top-1/2 -translate-y-1/2">
+            <Button
+              btn="A"
+              label="A"
+              btnColor="bg-rose-500/30 hover:bg-rose-500/50"
+              className="w-10 h-10 sm:w-12 sm:h-12 text-rose-300 font-black text-lg"
+            />
           </div>
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 mb-2">   
-            <ActionButton btn="B" label="B" color="bg-yellow-500/30" />
+          {/* B — bottom */}
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
+            <Button
+              btn="B"
+              label="B"
+              btnColor="bg-yellow-500/30 hover:bg-yellow-500/50"
+              className="w-10 h-10 sm:w-12 sm:h-12 text-yellow-300 font-black text-lg"
+            />
           </div>
-          <div className="absolute top-1/2 left-0 -translate-y-1/2 -ml-4">
-            <ActionButton btn="Y" label="Y" color="bg-green-500/30" />
+          {/* Y — left */}
+          <div className="absolute left-0 top-1/2 -translate-y-1/2">
+            <Button
+              btn="Y"
+              label="Y"
+              btnColor="bg-green-500/30 hover:bg-green-500/50"
+              className="w-10 h-10 sm:w-12 sm:h-12 text-green-300 font-black text-lg"
+            />
           </div>
         </div>
       </div>
