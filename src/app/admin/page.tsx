@@ -64,7 +64,7 @@ export default function AdminDashboard() {
   });
 
   // Fetch game library
-  const { data: gamesData, isLoading: gamesLoading } = useQuery({
+  const { data: gamesData, isLoading: gamesLoading, refetch: refetchGames } = useQuery({
     queryKey: ["admin-games"],
     queryFn: async () => {
       const res = await fetch("/api/v1/games?limit=50");
@@ -82,13 +82,81 @@ export default function AdminDashboard() {
 
     setUploadStatus("uploading");
     try {
-      // In production: POST metadata to /api/v1/games, get R2 presigned URL, PUT file
-      // For now we just simulate the flow
-      await new Promise((r) => setTimeout(r, 2000));
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      let system = 'Unknown';
+      if (ext === 'gba') system = 'GBA';
+      else if (ext === 'z64' || ext === 'n64' || ext === 'v64') system = 'N64';
+      else if (ext === 'sfc' || ext === 'smc') system = 'SNES';
+      else if (ext === 'nes') system = 'NES';
+      else if (ext === 'md' || ext === 'gen' || ext === 'bin') system = 'Genesis';
+
+      const title = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]+/g, " ");
+      const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+
+      let r2Key = "";
+
+      if (process.env.NODE_ENV === "development") {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const uploadRes = await fetch("/api/v1/games/upload-local", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadRes.ok) throw new Error("Local upload failed");
+        const data = await uploadRes.json();
+        r2Key = data.r2Key;
+      } else {
+        // Production: R2
+        const getUrlRes = await fetch("/api/v1/games/presigned-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename: file.name, contentType: file.type || "application/octet-stream" })
+        });
+
+        if (!getUrlRes.ok) throw new Error("Failed to get presigned URL");
+        const { url, r2Key: newR2Key } = await getUrlRes.json();
+        r2Key = newR2Key;
+
+        const putRes = await fetch(url, {
+          method: "PUT",
+          body: file,
+          headers: {
+            "Content-Type": file.type || "application/octet-stream"
+          }
+        });
+
+        if (!putRes.ok) throw new Error("Failed to upload to R2");
+      }
+
+      // Add to database
+      const dbRes = await fetch("/api/v1/games", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug,
+          title,
+          system,
+          r2Key,
+          description: `Uploaded ${system} game.`,
+          publisher: "Unknown",
+          releaseYear: new Date().getFullYear(),
+          coverArtUrl: "",
+          thumbnailUrl: "",
+          isFeatured: false
+        })
+      });
+
+      if (!dbRes.ok) throw new Error("Failed to save to database record");
+
       setUploadStatus("done");
+      refetchGames();
       setTimeout(() => setUploadStatus("idle"), 3000);
-    } catch {
+    } catch (err) {
+      console.error(err);
       setUploadStatus("error");
+      setTimeout(() => setUploadStatus("idle"), 5000);
     }
   };
 
@@ -118,7 +186,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <h1 className="text-2xl font-black tracking-wider">
-                COACHPLAY <span className="text-rose-500">ADMIN</span>
+                {process.env.NAME} <span className="text-rose-500">ADMIN</span>
               </h1>
               <p className="text-white/40 text-xs font-medium">System Dashboard</p>
             </div>
@@ -214,11 +282,10 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-5 py-3.5 text-white/70">{s.gameSlug ?? "—"}</td>
                       <td className="px-5 py-3.5">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                          s.status === "active"
-                            ? "bg-green-500/20 text-green-400"
-                            : "bg-yellow-500/20 text-yellow-400"
-                        }`}>
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${s.status === "active"
+                          ? "bg-green-500/20 text-green-400"
+                          : "bg-yellow-500/20 text-yellow-400"
+                          }`}>
                           {s.status}
                         </span>
                       </td>

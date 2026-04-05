@@ -150,7 +150,7 @@ export const useGameStore = create<GameStore>()(
           }),
       }),
       {
-        name: "coachplay-game-store",
+        name: `${process.env.NAME}-game-store`,
         // Only persist user preferences, not session state (sessions are ephemeral)
         partialize: (state) => ({
           showGamepad: state.showGamepad,
@@ -158,6 +158,6 @@ export const useGameStore = create<GameStore>()(
         }),
       }
     ),
-    { name: "CoachPlay Store" }
+    { name: `${process.env.NAME} Store` }
   )
 );

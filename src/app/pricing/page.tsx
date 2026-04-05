@@ -4,7 +4,7 @@ export default function PricingPage() {
   return (
     <div className="min-h-[100dvh] w-full bg-black text-white flex flex-col items-center justify-center p-8 overflow-y-auto">
       <div className="text-center mb-16 mt-12">
-        <h1 className="text-5xl font-black tracking-widest mb-4">UNLOCK <span className="text-rose-500 text-shadow-sm">COACHPLAY</span> ROOTS</h1>
+        <h1 className="text-5xl font-black tracking-widest mb-4">UNLOCK <span className="text-rose-500 text-shadow-sm">{process.env.NAME}</span> ROOTS</h1>
         <p className="text-xl text-white/60 max-w-2xl mx-auto">
           Experience true cloud couch gaming with zero limits. Invite up to 3 friends to your session from anywhere in the world.
         </p>
@@ -15,7 +15,7 @@ export default function PricingPage() {
         <div className="flex-1 rounded-3xl bg-white/5 border border-white/10 p-10 flex flex-col relative overflow-hidden">
           <h2 className="text-2xl font-bold mb-2">Guest Mode</h2>
           <div className="text-4xl font-black mb-8">Free</div>
-          
+
           <ul className="flex flex-col gap-4 mb-12 flex-1 text-white/70 font-medium">
             <li className="flex items-center gap-3"><CheckCircle2 className="text-white/30" /> Supported: Ad-breaks</li>
             <li className="flex items-center gap-3"><CheckCircle2 className="text-white/30" /> Local Single Player (Mode 1)</li>
@@ -34,7 +34,7 @@ export default function PricingPage() {
           <div className="text-4xl font-black mb-8 flex items-baseline gap-2">
             $5.99 <span className="text-lg text-rose-500/60 font-bold uppercase tracking-widest">/ month</span>
           </div>
-          
+
           <ul className="flex flex-col gap-4 mb-12 flex-1 text-rose-100/90 font-medium">
             <li className="flex items-center gap-3"><CheckCircle2 className="text-rose-500" /> Ad-Free Experience</li>
             <li className="flex items-center gap-3"><CheckCircle2 className="text-rose-500" /> Multi-device Play (up to 4 phones)</li>

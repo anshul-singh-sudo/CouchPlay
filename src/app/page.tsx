@@ -225,7 +225,7 @@ export default function Home() {
           <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center">
             <Gamepad2 className="w-6 h-6 text-black" />
           </div>
-          <span className="text-xl font-black tracking-[0.2em] uppercase">CoachPlay</span>
+          <span className="text-xl font-black tracking-[0.2em] uppercase">{process.env.NAME}</span>
         </div>
 
         {/* Actions */}
@@ -299,11 +299,10 @@ export default function Home() {
             <button
               key={sys}
               onClick={() => { setActiveSystem(sys); setSelectedIndex(0); }}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase transition-colors ${
-                activeSystem === sys
-                  ? "bg-white text-black"
-                  : "bg-white/10 text-white/60 hover:bg-white/20 hover:text-white"
-              }`}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase transition-colors ${activeSystem === sys
+                ? "bg-white text-black"
+                : "bg-white/10 text-white/60 hover:bg-white/20 hover:text-white"
+                }`}
             >
               {sys}
             </button>
@@ -318,39 +317,39 @@ export default function Home() {
           {isLoading
             ? Array.from({ length: 6 }).map((_, i) => <GameCardSkeleton key={i} />)
             : games.map((game, i) => (
-                <motion.div
-                  key={game.slug}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setSelectedIndex(i)}
-                  className={`
+              <motion.div
+                key={game.slug}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setSelectedIndex(i)}
+                className={`
                     snap-center shrink-0 w-60 h-36 rounded-2xl cursor-pointer
                     border-2 overflow-hidden relative shadow-xl transition-all
                     ${i === selectedIndex ? "border-white" : "border-transparent opacity-60 hover:opacity-90"}
                     ${game.thumbnailUrl ? "" : CARD_COLORS[i % CARD_COLORS.length]}
                   `}
-                >
-                  {game.thumbnailUrl && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={game.thumbnailUrl}
-                      alt={game.title}
-                      className="w-full h-full object-cover absolute inset-0"
-                    />
-                  )}
-                  <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
-                    <div className="text-[10px] font-black text-white/60 tracking-widest uppercase mb-0.5">
-                      {game.system}
-                    </div>
-                    <div className="font-bold text-sm truncate leading-tight">{game.title}</div>
+              >
+                {game.thumbnailUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={game.thumbnailUrl}
+                    alt={game.title}
+                    className="w-full h-full object-cover absolute inset-0"
+                  />
+                )}
+                <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+                  <div className="text-[10px] font-black text-white/60 tracking-widest uppercase mb-0.5">
+                    {game.system}
                   </div>
-                  {game.isFeatured && (
-                    <div className="absolute top-2 right-2 px-2 py-0.5 bg-rose-600 rounded-full text-[9px] font-black tracking-widest uppercase">
-                      Featured
-                    </div>
-                  )}
-                </motion.div>
-              ))}
+                  <div className="font-bold text-sm truncate leading-tight">{game.title}</div>
+                </div>
+                {game.isFeatured && (
+                  <div className="absolute top-2 right-2 px-2 py-0.5 bg-rose-600 rounded-full text-[9px] font-black tracking-widest uppercase">
+                    Featured
+                  </div>
+                )}
+              </motion.div>
+            ))}
         </div>
       </main>
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coachplay-v1';
+const CACHE_NAME = `${process.env.NAME}-v1`;
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',

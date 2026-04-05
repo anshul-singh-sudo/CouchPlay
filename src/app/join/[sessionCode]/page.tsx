@@ -16,7 +16,7 @@ export default function JoinPage({ params }: { params: { sessionCode: string } }
       {/* Dynamic Background */}
       <div className="absolute inset-0 bg-blue-900/30 blur-[150px] pointer-events-none"></div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="z-10 text-center mb-12"
@@ -28,7 +28,7 @@ export default function JoinPage({ params }: { params: { sessionCode: string } }
           {params.sessionCode.toUpperCase()}
         </h1>
         <p className="text-white/70 max-w-sm mx-auto">
-          Choose how you want to interact with this CoachPlay session on your current device.
+          Choose how you want to interact with this {process.env.NAME} session on your current device.
         </p>
       </motion.div>
 

@@ -147,7 +147,7 @@ const EmulatorPlayer = forwardRef<EmulatorPlayerHandle, EmulatorPlayerProps>(
           className="w-full h-full absolute inset-0 z-0 border-none"
           allow="autoplay; fullscreen; gamepad"
           sandbox="allow-scripts allow-same-origin allow-forms"
-          title="CoachPlay Emulator"
+          title={`${process.env.NAME} Emulator`}
         />
 
         {/* Top Overlay Bar — fades in/out */}
@@ -202,11 +202,10 @@ const EmulatorPlayer = forwardRef<EmulatorPlayerHandle, EmulatorPlayerProps>(
                 </button>
                 <button
                   onClick={() => setShowGamepad((p) => !p)}
-                  className={`p-2.5 backdrop-blur-md rounded-full text-white transition-colors border ${
-                    showGamepad
-                      ? "bg-rose-600/80 hover:bg-rose-600 border-rose-500/50"
-                      : "bg-black/60 hover:bg-black/90 border-white/10"
-                  }`}
+                  className={`p-2.5 backdrop-blur-md rounded-full text-white transition-colors border ${showGamepad
+                    ? "bg-rose-600/80 hover:bg-rose-600 border-rose-500/50"
+                    : "bg-black/60 hover:bg-black/90 border-white/10"
+                    }`}
                 >
                   <GamepadIcon className="w-5 h-5" />
                 </button>

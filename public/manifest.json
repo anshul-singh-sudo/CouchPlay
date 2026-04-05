@@ -1,6 +1,6 @@
 {
-  "name": "CoachPlay",
-  "short_name": "CoachPlay",
+  "name": "CouchCode",
+  "short_name": "CouchCode",
   "description": "Browser-first cloud couch gaming. No installs. No downloads.",
   "start_url": "/",
   "display": "fullscreen",
@@ -28,7 +28,7 @@
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "CoachPlay Home Screen"
+      "label": "CouchCode Home Screen"
     }
   ],
   "prefer_related_applications": false

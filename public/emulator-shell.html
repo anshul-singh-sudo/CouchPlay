@@ -1,15 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CoachPlay Emulator Shell</title>
+  <title>CouchCode Emulator Shell</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
-    #game { width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+
+    #game {
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <div id="game"></div>
 
@@ -45,13 +62,13 @@
     };
 
     // Notify the parent frame when EJS is ready
-    window.EJS_onGameStart = function() {
+    window.EJS_onGameStart = function () {
       window.parent.postMessage({ type: 'EJS_READY' }, '*');
     };
 
     // Listen for input messages from the parent window
     // This is the direct injection path that bypasses the UI event queue
-    window.addEventListener('message', function(event) {
+    window.addEventListener('message', function (event) {
       if (event.data?.type !== 'EJS_INPUT') return;
       var d = event.data;
       var keyCode = d.keyCode || (d.key && d.key.length === 1 ? d.key.toUpperCase().charCodeAt(0) : 0);
@@ -68,7 +85,7 @@
     });
 
     // Update mute state on re-parameterization
-    window.addEventListener('message', function(event) {
+    window.addEventListener('message', function (event) {
       if (event.data?.type === 'EJS_SET_MUTE') {
         if (window.EJS_emulator && window.EJS_emulator.setVolume) {
           window.EJS_emulator.setVolume(event.data.muted ? 0 : 1);
@@ -83,4 +100,5 @@
     document.body.appendChild(script);
   </script>
 </body>
+
 </html>
